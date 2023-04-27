@@ -9,7 +9,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("load .env fatal")
+	}
+}
 
 func main() {
 	router := gin.Default()
@@ -20,7 +27,7 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    os.Getenv("APP_HOST") + os.Getenv("APP_PORT"),
 		Handler: router,
 	}
 
