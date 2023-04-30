@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type StatusController struct {
+type StatusAction struct {
+	Controller
 }
 
-func Status(ctx *gin.Context) {
+func (s StatusAction) Status(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "ok",
 	})
