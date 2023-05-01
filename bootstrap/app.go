@@ -23,7 +23,6 @@ func NewServer(config config.Config) *http.Server {
 		config: config,
 	}
 	app.
-		setConfig(config).
 		registerProvider().
 		registerMiddleware().
 		registerRouter()
@@ -32,15 +31,6 @@ func NewServer(config config.Config) *http.Server {
 		Addr:    fmt.Sprintf("%s:%d", config.App.Host, config.App.Port),
 		Handler: app.router,
 	}
-}
-
-// 設置 App 配置
-func (app *App) setConfig(config config.Config) *App {
-	app.router.Use(func(c *gin.Context) {
-		c.Set("config", config)
-		c.Next()
-	})
-	return app
 }
 
 // 註冊服務
@@ -53,6 +43,7 @@ func (app *App) registerProvider() *App {
 	app.router.Use(func(c *gin.Context) {
 		c.Set("log", logger)
 		c.Set("db", db)
+		c.Set("config", app.config)
 		c.Next()
 	})
 
