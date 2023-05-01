@@ -2,24 +2,18 @@ package main
 
 import (
 	"board/bootstrap"
+	"board/config"
 	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("load .env fatal")
-	}
-}
-
 func main() {
-	server := bootstrap.NewServer()
+	config := config.Init()
+	server := bootstrap.NewServer(config)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

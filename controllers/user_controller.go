@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type UserAction struct {
@@ -13,6 +14,12 @@ type UserInput struct {
 	Password string `json:"password" binding:"required,min=3,max=20"`
 }
 
+type User struct {
+	ID    string
+	Name  string
+	Email string
+}
+
 // 新增 user
 func (u UserAction) Store(ctx *gin.Context) {
 	var input UserInput
@@ -21,7 +28,12 @@ func (u UserAction) Store(ctx *gin.Context) {
 		return
 	}
 
+	var user User
+	db := ctx.MustGet("db").(*gorm.DB)
+
+	db.First(&user)
+
 	u.success(ctx, 201, gin.H{
-		"user": input,
+		"user": user,
 	})
 }

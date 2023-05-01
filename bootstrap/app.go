@@ -1,36 +1,60 @@
 package bootstrap
 
 import (
+	"board/config"
 	"board/middlewares"
 	"board/providers"
 	"board/routers"
+	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 type App struct {
 	router *gin.Engine
+	config config.Config
 }
 
-func NewServer() *http.Server {
-	app := App{router: gin.New()}
+// 建立 server 實例
+func NewServer(config config.Config) *http.Server {
+	app := App{
+		router: gin.New(),
+		config: config,
+	}
 	app.
+		setConfig(config).
 		registerProvider().
 		registerMiddleware().
 		registerRouter()
 
 	return &http.Server{
-		Addr:    os.Getenv("APP_HOST") + os.Getenv("APP_PORT"),
+		Addr:    fmt.Sprintf("%s:%d", config.App.Host, config.App.Port),
 		Handler: app.router,
 	}
+}
+
+// 設置 App 配置
+func (app *App) setConfig(config config.Config) *App {
+	app.router.Use(func(c *gin.Context) {
+		c.Set("config", config)
+		c.Next()
+	})
+	return app
 }
 
 // 註冊服務
 func (app *App) registerProvider() *App {
 	app.router.Use(gin.Recovery())
-	app.router.Use(providers.Logger)
+
+	logger := providers.Logger()
+	db := providers.DB(app.config)
+
+	app.router.Use(func(c *gin.Context) {
+		c.Set("log", logger)
+		c.Set("db", db)
+		c.Next()
+	})
 
 	return app
 }
