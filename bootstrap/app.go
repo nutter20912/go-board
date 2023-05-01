@@ -38,7 +38,7 @@ func (app *App) registerProvider() *App {
 	app.router.Use(gin.Recovery())
 
 	logger := providers.Logger()
-	db := providers.DB(app.config)
+	db := providers.DB(app.config, logger)
 
 	app.router.Use(func(c *gin.Context) {
 		c.Set("log", logger)

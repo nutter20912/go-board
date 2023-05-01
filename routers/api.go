@@ -2,7 +2,12 @@ package routers
 
 import "board/controllers"
 
+var userController = controllers.UserAction{}
+
 var Apis = []controllers.Controller{
 	{Method: "GET", Path: "/", Action: controllers.StatusAction{}.Status},
-	{Method: "POST", Path: "/user", Action: controllers.UserAction{}.Store},
+
+	// user
+	{Method: "GET", Path: "/user/:id", Action: userController.Show},
+	{Method: "POST", Path: "/user", Action: userController.Store},
 }
