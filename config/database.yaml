@@ -1,6 +1,6 @@
 db:
-  host: localhost
-  port: 3306
-  username: sail
-  password: password
-  database: laravel
+  host: ${DB_HOST}
+  port: ${DB_PORT}
+  database: ${DB_DATABASE}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}

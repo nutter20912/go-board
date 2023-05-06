@@ -1,5 +1,6 @@
 app:
-  name: board
-  mode: debug
-  host: 127.0.0.1
-  port: 8080
+  name: ${APP_NAME}
+  env: ${APP_ENV}
+  debug: ${APP_DEBUG}
+  host: ${APP_HOST}
+  port: ${APP_PORT}

@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -10,7 +11,8 @@ import (
 
 type Config struct {
 	App struct {
-		Mode string `yaml:"mode"`
+		Name string `yaml:"name"`
+		Env  string `yaml:"env"`
 		Host string `yaml:"host"`
 		Port int    `yaml:"port"`
 	} `yaml:"app"`
@@ -18,9 +20,9 @@ type Config struct {
 	DB struct {
 		Host     string `yaml:"host"`
 		Port     int    `yaml:"port"`
+		Database string `yaml:"password"`
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
-		Database string `yaml:"password"`
 	} `yaml:"db"`
 }
 
@@ -34,6 +36,9 @@ func Init() Config {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	for _, file := range files {
 		viper.SetConfigFile(file)
