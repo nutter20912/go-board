@@ -24,7 +24,7 @@ func (c *Controller) validate(ctx *gin.Context, input interface{}) error {
 }
 
 func (c *Controller) error(ctx *gin.Context, errorCode int, message string) {
-	ctx.JSON(http.StatusBadRequest, gin.H{
+	ctx.JSON(ctx.Request.Response.StatusCode, gin.H{
 		"code":    errorCode,
 		"message": message,
 		"result":  nil,

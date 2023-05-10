@@ -39,11 +39,13 @@ func (app *App) registerProvider() *App {
 
 	logger := providers.Logger()
 	db := providers.DB(app.config, logger)
+	hub := providers.Hub()
 
 	app.router.Use(func(c *gin.Context) {
+		c.Set("config", app.config)
 		c.Set("log", logger)
 		c.Set("db", db)
-		c.Set("config", app.config)
+		c.Set("hub", hub)
 		c.Next()
 	})
 
@@ -53,7 +55,7 @@ func (app *App) registerProvider() *App {
 // 註冊中間件
 func (app *App) registerMiddleware() *App {
 	app.router.Use(middlewares.ErrorHandler)
-	app.router.Use(middlewares.RequestLogger)
+	//app.router.Use(middlewares.RequestLogger)
 
 	return app
 }
