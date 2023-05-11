@@ -2,7 +2,9 @@ package chat
 
 import (
 	"bytes"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,19 +45,28 @@ func (c *Client) ReadPump() {
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		c.Hub.Broadcast <- message
 	}
-
 }
 
 func (c *Client) WritePump() {
+	ticker := time.NewTicker(time.Second * 110)
 	defer func() {
+		ticker.Stop()
 		c.Conn.Close()
 	}()
 
 	for {
 		select {
-		case _, ok := <-c.Send:
+		case message, ok := <-c.Send:
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte("byebye"))
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			c.Conn.WriteMessage(websocket.TextMessage, []byte(message))
+
+		case <-ticker.C:
+			fmt.Println("ping")
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
 			}
 		}
 	}

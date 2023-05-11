@@ -4,6 +4,7 @@ import (
 	"board/libs"
 	"board/services/chat"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,13 @@ func (c ChatAction) Room(ctx *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+
+	conn.SetReadLimit(512)
+	conn.SetReadDeadline(time.Now().Add(time.Second * 10))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(time.Second * 10))
+		return nil
+	})
 
 	hub := ctx.MustGet("hub").(*chat.Hub)
 
