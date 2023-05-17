@@ -40,12 +40,14 @@ func (app *App) registerProvider() *App {
 	logger := providers.Logger()
 	db := providers.DB(app.config, logger)
 	hub := providers.Hub()
+	channelManager := providers.ChannelManager()
 
 	app.router.Use(func(c *gin.Context) {
 		c.Set("config", app.config)
 		c.Set("log", logger)
 		c.Set("db", db)
 		c.Set("hub", hub)
+		c.Set("channelManager", channelManager)
 		c.Next()
 	})
 

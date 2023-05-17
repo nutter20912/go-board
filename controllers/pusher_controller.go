@@ -13,6 +13,8 @@ type PusherAction struct {
 }
 
 func (p PusherAction) Sub(ctx *gin.Context) {
+	channelManager := ctx.MustGet("channelManager").(*pusher.ChannelManager)
+
 	conn, err := libs.Upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -20,10 +22,12 @@ func (p PusherAction) Sub(ctx *gin.Context) {
 	}
 
 	client := pusher.Client{
-		Conn: conn,
-		Send: make(chan []byte, 256),
+		ChannelManager: channelManager,
+		Conn:           conn,
+		Send:           make(chan []byte, 256),
 	}
 
+	go client.ReadPump()
 	go client.WritePump()
 
 	client.Open()
