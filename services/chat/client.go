@@ -2,19 +2,11 @@ package chat
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
-
-type Hub struct {
-	Clients    map[*Client]bool
-	Broadcast  chan []byte
-	Register   chan *Client
-	Unregister chan *Client
-}
 
 type Client struct {
 	Hub  *Hub
@@ -23,10 +15,14 @@ type Client struct {
 }
 
 var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
+	newline      = []byte{'\n'}
+	space        = []byte{' '}
+	PingPeriod   = time.Minute
+	ReadTimeout  = PingPeriod + time.Second*5
+	WriteTimeout = time.Second * 10
 )
 
+// 讀取訊息
 func (c *Client) ReadPump() {
 	defer func() {
 		c.Hub.Unregister <- c
@@ -47,8 +43,9 @@ func (c *Client) ReadPump() {
 	}
 }
 
+// 寫入流處理
 func (c *Client) WritePump() {
-	ticker := time.NewTicker(time.Second * 110)
+	ticker := time.NewTicker(PingPeriod)
 	defer func() {
 		ticker.Stop()
 		c.Conn.Close()
@@ -58,25 +55,21 @@ func (c *Client) WritePump() {
 		select {
 		case message, ok := <-c.Send:
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.writeHandler(websocket.CloseMessage, []byte{})
 				return
 			}
-			c.Conn.WriteMessage(websocket.TextMessage, []byte(message))
-
+			c.writeHandler(websocket.TextMessage, []byte(message))
 		case <-ticker.C:
-			fmt.Println("ping")
-			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			if err := c.writeHandler(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
 	}
 }
 
-func NewHub() *Hub {
-	return &Hub{
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Clients:    make(map[*Client]bool),
-	}
+// 處理寫入訊息
+func (c *Client) writeHandler(messageType int, data []byte) error {
+	c.Conn.SetWriteDeadline(time.Now().Add(WriteTimeout))
+
+	return c.Conn.WriteMessage(messageType, data)
 }

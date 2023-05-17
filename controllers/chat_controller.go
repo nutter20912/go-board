@@ -22,9 +22,10 @@ func (c ChatAction) Room(ctx *gin.Context) {
 	}
 
 	conn.SetReadLimit(512)
-	conn.SetReadDeadline(time.Now().Add(time.Second * 10))
+	conn.SetReadDeadline(time.Now().Add(chat.ReadTimeout))
 	conn.SetPongHandler(func(string) error {
-		conn.SetReadDeadline(time.Now().Add(time.Second * 10))
+		fmt.Println("pong")
+		conn.SetReadDeadline(time.Now().Add(chat.ReadTimeout))
 		return nil
 	})
 
