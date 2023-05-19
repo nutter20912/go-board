@@ -16,22 +16,19 @@ type Client struct {
 	Send           chan []byte
 }
 
-type Message struct {
-	Event string            `json:"event"`
-	Data  map[string]string `json:"data"`
+func (c *Client) jsonEncode(value interface{}) []byte {
+	m, _ := json.Marshal(value)
+
+	return m
 }
 
 func (c *Client) Open() {
 	c.generateSocketId()
 
-	m, _ := json.Marshal(Message{
-		Event: "pusher:connection_established",
-		Data: map[string]string{
-			"socket_id": c.socketId,
-		},
+	c.Send <- c.jsonEncode(ProtocolMessage{
+		Event: EVENT_CONNECTION_ESTABLISHED,
+		Data:  Data{SocketId: c.socketId},
 	})
-
-	c.Send <- m
 }
 
 func (c *Client) generateSocketId() *Client {
@@ -55,15 +52,16 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		var mes = Message{}
+		var mes = ProtocolMessage{}
 		json.Unmarshal(message, &mes)
 
 		switch mes.Event {
 		case "pusher:subscribe":
-			//TODO 改成chan處理
-			channel := c.ChannelManager.findOrCreate(mes.Data["channel"])
-			channel.subscribe(c)
-			fmt.Println(c.ChannelManager.Channels)
+			c.ChannelManager.Register <- &ProtocolMessage{
+				client: c,
+				Event:  mes.Event,
+				Data:   mes.Data,
+			}
 		}
 	}
 }

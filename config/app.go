@@ -24,6 +24,11 @@ type Config struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
 	} `yaml:"db"`
+
+	Pusher struct {
+		Key    string `yaml:"key"`
+		Secret string `yaml:"secret"`
+	} `yaml:"pusher"`
 }
 
 // 載入配置

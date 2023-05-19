@@ -1,22 +1,15 @@
 package providers
 
 import (
+	"board/config"
 	"board/services/pusher"
 	"fmt"
 )
 
-func ChannelManager() *pusher.ChannelManager {
-	channelManager := pusher.NewChannelManager()
+func ChannelManager(c config.Config) *pusher.ChannelManager {
+	channelManager := pusher.NewChannelManager(c)
 
-	go func() {
-		for {
-			select {
-			case channel := <-channelManager.Register:
-				fmt.Printf("register: %v - %v\n", channel.Name, channelManager.Channels)
-				channelManager.Channels[channel.Name] = channel
-			}
-		}
-	}()
+	go channelManager.Reactor()
 
 	fmt.Println("init ChannelManager")
 
