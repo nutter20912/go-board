@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"board/config"
+	"board/controllers"
 	"board/middlewares"
 	"board/providers"
 	"board/routers"
@@ -70,6 +71,14 @@ func (app *App) registerRouter() *App {
 			controller.Path,
 			controller.Action,
 		)
+	}
+
+	var pusherController = controllers.PusherAction{}
+
+	app.router.GET("/app/:app_id", pusherController.Sub)
+	pusherApps := app.router.Group("apps")
+	{
+		pusherApps.POST("/:app_id/events", pusherController.TriggerEvent)
 	}
 
 	return app

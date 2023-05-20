@@ -8,10 +8,11 @@ type Data struct {
 	SocketId string `json:"socket_id,omitempty"`
 }
 
-type ProtocolMessage struct {
-	client *Client
-	Event  string `json:"event"`
-	Data   `json:"data"`
+type Message struct {
+	client  *Client
+	Event   string `json:"event"`
+	Channel string `json:"channel,omitempty"`
+	*Data   `json:"data,omitempty"`
 }
 
 type ErrorMessage struct {
@@ -26,4 +27,5 @@ const (
 	EVENT_ERROR                  string = "pusher:error"
 	EVENT_SUBSCRIBE              string = "pusher:subscribe"
 	EVENT_UNSUBSCRIBE            string = "pusher:unsubscribe"
+	EVENT_SUBSCRIBE_SUCCESS      string = "pusher_internal:subscription_succeeded"
 )

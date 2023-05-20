@@ -7,47 +7,46 @@ import (
 type ChannelManager struct {
 	config   config.Config
 	Channels map[string]*Channel
-	Register chan *ProtocolMessage
+	Register chan *Message
 }
 
 func NewChannelManager(c config.Config) *ChannelManager {
 	return &ChannelManager{
 		config:   c,
 		Channels: make(map[string]*Channel),
-		Register: make(chan *ProtocolMessage),
+		Register: make(chan *Message),
 	}
 }
 
-// 事件處理
-func (c *ChannelManager) Reactor() {
+// 事件處理jsonEncode
+func (cm *ChannelManager) Reactor() {
 	for {
 		select {
-		case protocolMessage := <-c.Register:
-			channel := c.findOrCreate(protocolMessage.Data.Channel)
+		case message := <-cm.Register:
+			channel := cm.findOrCreate(message.Data.Channel)
 
-			if err := channel.subscribe(protocolMessage); err != nil {
-				protocolMessage.client.Send <- protocolMessage.client.jsonEncode(
-					ErrorMessage{
-						Event: EVENT_ERROR,
-						Data:  Data{Message: err.Error()},
-					})
+			if err := channel.subscribe(message); err != nil {
+				message.client.onError(err.Error())
+				continue
 			}
+
+			message.client.onSubscribeSucceeded(message.Data.Channel)
 		}
 	}
 }
 
-func (c *ChannelManager) findOrCreate(channelName string) *Channel {
-	if channel, ok := c.Channels[channelName]; ok {
+func (cm *ChannelManager) findOrCreate(channelName string) *Channel {
+	if channel, ok := cm.Channels[channelName]; ok {
 		return channel
 	}
 
 	channel := &Channel{
-		config:  c.config,
+		config:  cm.config,
 		Name:    channelName,
 		Clients: make(map[*Client]bool),
 	}
 
-	c.Channels[channelName] = channel
+	cm.Channels[channelName] = channel
 
 	return channel
 }

@@ -1,6 +1,7 @@
 package pusher
 
 import (
+	"board/helper"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -14,27 +15,6 @@ type Client struct {
 	socketId       string
 	Conn           *websocket.Conn
 	Send           chan []byte
-}
-
-func (c *Client) jsonEncode(value interface{}) []byte {
-	m, _ := json.Marshal(value)
-
-	return m
-}
-
-func (c *Client) Open() {
-	c.generateSocketId()
-
-	c.Send <- c.jsonEncode(ProtocolMessage{
-		Event: EVENT_CONNECTION_ESTABLISHED,
-		Data:  Data{SocketId: c.socketId},
-	})
-}
-
-func (c *Client) generateSocketId() *Client {
-	c.socketId = fmt.Sprintf("%d.%d", rand.Uint64(), rand.Uint64())
-
-	return c
 }
 
 // 讀取客戶端消息
@@ -52,16 +32,12 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		var mes = ProtocolMessage{}
-		json.Unmarshal(message, &mes)
+		var m = Message{}
+		json.Unmarshal(message, &m)
 
-		switch mes.Event {
-		case "pusher:subscribe":
-			c.ChannelManager.Register <- &ProtocolMessage{
-				client: c,
-				Event:  mes.Event,
-				Data:   mes.Data,
-			}
+		switch m.Event {
+		case EVENT_SUBSCRIBE:
+			c.subcribe(m)
 		}
 	}
 }
@@ -90,4 +66,53 @@ func (c *Client) WritePump() {
 			}
 		}
 	}
+}
+
+func (c *Client) Open() {
+	c.generateSocketId()
+	c.onConnectioned()
+}
+
+// 生成 socket 編號
+func (c *Client) generateSocketId() *Client {
+	c.socketId = fmt.Sprintf("%d.%d", rand.Uint64(), rand.Uint64())
+
+	return c
+}
+
+// 訂閱頻道
+func (c *Client) subcribe(m Message) {
+	m.client = c
+
+	c.ChannelManager.Register <- &m
+}
+
+// 已建立連接
+func (c *Client) onConnectioned() {
+	message := Message{
+		Event: EVENT_CONNECTION_ESTABLISHED,
+		Data:  &Data{SocketId: c.socketId},
+	}
+
+	c.Send <- helper.JsonEncode(message)
+}
+
+// 訂閱成功
+func (c *Client) onSubscribeSucceeded(channel string) {
+	message := Message{
+		Event:   EVENT_SUBSCRIBE_SUCCESS,
+		Channel: channel,
+	}
+
+	c.Send <- helper.JsonEncode(message)
+}
+
+// 錯誤訊息
+func (c *Client) onError(errMsg string) {
+	message := ErrorMessage{
+		Event: EVENT_ERROR,
+		Data:  Data{Message: errMsg},
+	}
+
+	c.Send <- helper.JsonEncode(message)
 }

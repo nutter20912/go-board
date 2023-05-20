@@ -32,3 +32,25 @@ func (p PusherAction) Sub(ctx *gin.Context) {
 
 	client.Open()
 }
+
+type TriggerEventMessage struct {
+	Name     string
+	Data     interface{}
+	Channel  string
+	Channels []string
+	SocketId string
+}
+
+// 觸發事件
+func (p *PusherAction) TriggerEvent(ctx *gin.Context) {
+	appId := ctx.Param("app_id")
+
+	// ValidSignature
+	// get channels
+	// find channel
+	// broadcast expect self
+
+	p.success(ctx, 200, gin.H{
+		"user": appId,
+	})
+}
