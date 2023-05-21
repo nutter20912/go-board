@@ -1,11 +1,12 @@
 package pusher
 
 type Data struct {
-	Auth     string `json:"auth,omitempty"`
-	Channel  string `json:"channel,omitempty"`
-	Message  string `json:"message,omitempty"`
-	Code     string `json:"code,omitempty"`
-	SocketId string `json:"socket_id,omitempty"`
+	Auth            string `json:"auth,omitempty"`
+	Channel         string `json:"channel,omitempty"`
+	Message         string `json:"message,omitempty"`
+	Code            string `json:"code,omitempty"`
+	SocketId        string `json:"socket_id,omitempty"`
+	ActivityTimeout string `json:"activity_timeout,omitempty"`
 }
 
 type Message struct {

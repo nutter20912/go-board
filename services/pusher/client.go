@@ -89,12 +89,20 @@ func (c *Client) subcribe(m Message) {
 
 // 已建立連接
 func (c *Client) onConnectioned() {
-	message := Message{
-		Event: EVENT_CONNECTION_ESTABLISHED,
-		Data:  &Data{SocketId: c.socketId},
-	}
+	data := helper.JsonEncode(Data{
+		SocketId:        c.socketId,
+		ActivityTimeout: "30",
+	})
 
-	c.Send <- helper.JsonEncode(message)
+	//message := Message{
+	//	Event: EVENT_CONNECTION_ESTABLISHED,
+	//	Data:  &Data{SocketId: c.socketId},
+	//}
+
+	c.Send <- helper.JsonEncode(map[string]string{
+		"event": EVENT_CONNECTION_ESTABLISHED,
+		"data":  string(data),
+	})
 }
 
 // 訂閱成功
